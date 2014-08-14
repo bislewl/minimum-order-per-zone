@@ -35,7 +35,7 @@ class minimumOrderPerZone extends base {
     global $currencies;
 	global $db;
         $_SESSION['valid_to_checkout'] = false;
-        if($_SESSION['cart']->count_contents() > 0 && isset($_SESSION['customer_zone_id'])){
+        if($_SESSION['cart']->count_contents() > 0 && isset($_SESSION['customer_zone_id']) && MINIMUM_PER_ORDER_ZONE_ENABLED != 'disabled'){
             $customers_session_zone = $_SESSION['customer_zone_id'];
             $min_order_per_zone_db = str_replace(" ","",MINIMUM_PER_ORDER_ZONE_VALUE);
             $min_order_raw_zones = explode(",",$min_order_per_zone_db);
