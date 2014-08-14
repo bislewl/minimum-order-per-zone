@@ -3,7 +3,7 @@
 $db->Execute("INSERT IGNORE INTO " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) "
         . "VALUES ('Enable for Order Total or Item Count', 'MINIMUM_PER_ORDER_ZONE_ENABLED', 'disabled', 'Select if you would like the minimum order per zone to use the total amount OR the total number of items.', ".$configuration_group_id.", '2', 'zen_cfg_select_option(array(\'disabled\', \'total\', \'count\'), ', now());");
 $db->Execute("INSERT IGNORE INTO " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) "
-        . "VALUES ('Minimum Values', 'MINIMUM_PER_ORDER_ZONE_VALUE', '', 'Enter the minimum order per zone for ALL zones you wish to ship to. in the following format. <br /> Amount:Zone <br />Example: <i>50.00:12,150.00:17</i>', ".$configuration_group_id.", '3',  now());");
+        . "VALUES ('Minimum Values', 'MINIMUM_PER_ORDER_ZONE_VALUE', '', 'Enter the minimum order per zone. It will also use the highest value. So if you have zone 1 contain all 50 states in US and zone 2 contain Alaska. Enter in the following format. <br /> Amount:Zone <br />Example: <i>50.00:1,150.00:2</i> That forces the minimum for the USA to be 50 and Alaska be 150.', ".$configuration_group_id.", '3',  now());");
 
 
 // For Admin Pages
