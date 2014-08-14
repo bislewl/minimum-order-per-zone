@@ -69,7 +69,6 @@ class minimumOrderPerZone extends base {
                     $error_text = sprintf(TEXT_MIN_ORDER_PER_ZONE, $minimum_zones[$customers_zone]." items ", $zone_name);
                     break;
             }
-            $_SESSION['debug'] = "Cart_has:".$min_order_cart_has." Cart_Needs:".$min_req_in_zone;
             if($min_order_cart_has > $min_req_in_zone){
                 $_SESSION['valid_to_checkout'] = true;
             }
