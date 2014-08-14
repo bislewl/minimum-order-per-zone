@@ -12,16 +12,15 @@
  * Observer class used to check minimum order amount
  *
  */
-class minimum_order_per_zone extends base {
+class minimumOrderPerZone extends base {
   /**
    * constructor method
    *
    * Attaches our class to the ... and watches for 4 notifier events.
    */
-  function minimum_order_per_zone() {
+  function __construct(){
     global $zco_notifier;
-//      $_SESSION['cart']->attach($this, array('NOTIFIER_CART_GET_PRODUCTS_START', 'NOTIFIER_CART_GET_PRODUCTS_END'));
-    $zco_notifier->attach($this, array('NOTIFY_HEADER_END_SHOPPING_CART', 'NOTIFY_HEADER_START_CHECKOUT_SHIPPING', 'NOTIFY_HEADER_START_CHECKOUT_PAYMENT', 'NOTIFY_HEADER_START_CHECKOUT_CONFIRMATION'));
+    $zco_notifier->attach($this, array('NOTIFY_HEADER_START_CHECKOUT','NOTIFY_HEADER_START_CHECKOUT_SHIPPING'));
   }
   /**
    * Update Method
@@ -31,13 +30,13 @@ class minimum_order_per_zone extends base {
    * @param object $class
    * @param string $eventID
    */
-  function update(&$class, $eventID) {
+  function update(&$class, $eventID, $paramsArray) {
     global $messageStack;
     global $currencies;
 	global $db;
         $_SESSION['valid_to_checkout'] = false;
-        if($_SESSION['cart']->count_contents() > 0 && $_SESSION['customer_zone_id'] != '' && MINIMUM_PER_ORDER_ZONE_ENABLED != 'disabled'){
-            $customers_zone = $_SESSSION['customer_zone_id'];
+        if($_SESSION['cart']->count_contents() > 0 && isset($_SESSION['customer_zone_id'])){
+            $customers_session_zone = $_SESSION['customer_zone_id'];
             $min_order_per_zone_db = str_replace(" ","",MINIMUM_PER_ORDER_ZONE_VALUE);
             $min_order_raw_zones = explode(",",$min_order_per_zone_db);
             foreach($min_order_raw_zones as $zone_set){
@@ -45,19 +44,33 @@ class minimum_order_per_zone extends base {
                 $minimum_zones[$zone_temp_array[1]] = $zone_temp_array[0];
             }
             //get zone name
-            $zones_query = $db->Execute("SELECT * FROM ".TABLE_ZONES." WHERE zone_id=".(int)$customers_zone);
-            $zone_name = $zones_query->fields['zone_name'];
+            $to_geo_zone_query = $db->Execute("SELECT * FROM ".TABLE_ZONES_TO_GEO_ZONES." WHERE zone_id=".(int)$customers_session_zone);
+            $geo_zones_query = $db->Execute("SELECT * FROM ".TABLE_ZONES_TO_GEO_ZONES." WHERE zone_id=".(int)$to_geo_zone_query->fields['geo_zone_id']);
+            $zone_name = $geo_zones_query->fields['geo_zone_name'];
+            $min_values_for_zone = array();
+            while(!$to_geo_zone_query->EOF){
+                $zones_customer_in = $to_geo_zone_query->fields['geo_zone_id'];
+                if(isset($minimum_zones[$zones_customer_in])){
+                    $min_values_for_zone[] = $minimum_zones[$zones_customer_in];
+                }
+                $to_geo_zone_query->MoveNext();
+            }
+            rsort($min_values_for_zone);
+            $min_req_in_zone_raw = $min_values_for_zone[0];
             switch(MINIMUM_PER_ORDER_ZONE_ENABLED){
                 case 'total':
-                    $min_order_cart_has = $_SESSION['cart']->show_total();
+                    $min_order_cart_has = number_format($_SESSION['cart']->show_total(),2);
                     $error_text = sprintf(TEXT_MIN_ORDER_PER_ZONE, $currencies->format($minimum_zones[$customers_zone]), $zone_name);
+                    $min_req_in_zone = number_format($min_req_in_zone_raw,2);
                     break;
                 case 'count':
-                    $min_order_cart_has = $_SESSION['cart']->count_contents();
+                    $min_order_cart_has = (int)$_SESSION['cart']->count_contents();
+                    $min_req_in_zone = (int)$min_req_in_zone_raw;
                     $error_text = sprintf(TEXT_MIN_ORDER_PER_ZONE, $minimum_zones[$customers_zone]." items ", $zone_name);
                     break;
             }
-            if($min_order_cart_has >= $minimum_zones[$customers_zone]){
+            $_SESSION['debug'] = "Cart_has:".$min_order_cart_has." Cart_Needs:".$min_req_in_zone;
+            if($min_order_cart_has > $min_req_in_zone){
                 $_SESSION['valid_to_checkout'] = true;
             }
             else{
@@ -66,11 +79,5 @@ class minimum_order_per_zone extends base {
                 zen_redirect(zen_href_link(FILENAME_SHOPPING_CART));
             }
         }
-        if ($_SESSION['cart']->count_contents() > 0 && MIN_ORDER_AMOUNT > 0) {
-			  if($_SESSION['cart']->show_total() < MIN_ORDER_AMOUNT && $_SESSION['cart']->show_total() > 0) {
-				$_SESSION['valid_to_checkout'] = false;
-				$messageStack->add('shopping_cart', sprintf(TEXT_ORDER_UNDER_MIN_AMOUNT, $currencies->format(MIN_ORDER_AMOUNT)) . '<br />', 'caution');
-			  }
-			}
   }
 }

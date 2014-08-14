@@ -8,8 +8,8 @@
  * @license http://www.zen-cart.com/license/2_0.txt GNU Public License V2.0
  * @version $Id: config.minimum_order_amount.php 1.0.1 20.09.2007 0:06 AndrewBerezin $
  */ 
-$autoLoadConfig[190][] = array('autoType'=>'class',
+$autoLoadConfig[90][] = array('autoType'=>'class',
                               'loadFile'=>'observers/class.minimum_order_per_zone.php');
-$autoLoadConfig[190][] = array('autoType'=>'classInstantiate',
-                              'className'=>'minimum_order_per_zone',
-                              'objectName'=>'minimum_order_per_zone');
+$autoLoadConfig[90][] = array('autoType'=>'classInstantiate',
+                              'className'=>'minimumOrderPerZone',
+                              'objectName'=>'minimumOrderPerZone');
